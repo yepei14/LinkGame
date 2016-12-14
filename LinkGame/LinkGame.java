@@ -58,13 +58,7 @@ class LianLianKan implements ActionListener {
     JButton[][] diamondsButton = new JButton[Standard.columns][Standard.rows];
 
     //开始，退出，重列，重新开始按钮
-    JButton exitButton;
-
-    //开始，退出，重列，重新开始按钮
-    JButton resetButton;
-
-    //开始，退出，重列，重新开始按钮
-    JButton newlyButton;
+    JButton exitButton, resetButton, newlyButton;
 
     // JButton startButton;
     //分数标签
@@ -93,7 +87,9 @@ class LianLianKan implements ActionListener {
     Color b = new Color(243,129,129, 255);
     Color g = new Color(234,255,208, 255);
     Color m = new Color(149,225,211, 255);
-    boolean flag, ifNewGame = true, isClientConnected = false, isTransport = false;
+    boolean flag, ifNewGame = true,
+            isClientConnected = false,
+            isTransport = false;
 
     LianLianKan() {
         try {
@@ -368,6 +364,7 @@ class LianLianKan implements ActionListener {
                 } else { //当指定按钮为空时传空字符串即照片为传的照片为空
                     diamondsButton[cols][rows] = createImgBtn("",
                             String.valueOf(grid[cols + 1][rows + 1]));
+                    diamondsButton[cols][rows].setVisible(false);
                 }
 
                 diamondsButton[cols][rows].addActionListener(this);
@@ -375,16 +372,14 @@ class LianLianKan implements ActionListener {
             }
         }
 
-        if (x0 != 0 && y0 !=0){
+        if (x != 0 && y !=0){
             pressInformation = true;
-            JButton firstButton = diamondsButton[x0 - 1][y0 - 1];
-            firstMsg = grid[x0][y0];
+            JButton firstButton = diamondsButton[x - 1][y - 1];
+            firstMsg = grid[x][y];
             ImageIcon icon = new ImageIcon("./grid/" + firstMsg + "_chosen.png");
             firstButton.setIcon(icon);
         }
 
-        //  startButton=new JButton("开始");
-        //  startButton.addActionListener(this);
         exitButton = new JButton("退出");
         exitButton.addActionListener(this);
         resetButton = new JButton("重列");
@@ -399,8 +394,7 @@ class LianLianKan implements ActionListener {
         *为该标签设置一个文本字符串
         *该字符串为标签字符串所显示的文本字符串作为有符号的十进制整数为参数的字符串
         */
-        fractionLable.setText(String.valueOf(Integer.parseInt(
-                    fractionLable.getText())));
+        fractionLable.setText(String.valueOf(score));
         mainFrame.setBounds(180, 10, 700, 700); //设置主面板的位置和大小 
                                                 // mainFrame.setVisible(false);
         mainFrame.setVisible(true);
@@ -409,12 +403,7 @@ class LianLianKan implements ActionListener {
     //解析状态
     public void parseState(String state) {
         // 解析打包的状态
-        isTransport = true;
         String[] arr0 = state.split(" ");
-        System.out.println(arr0[0]);
-        System.out.println(arr0[1]);
-        System.out.println(arr0[2]);
-        System.out.println(arr0[3]);
         // 存入图案
         String[] arr1 = arr0[0].split(",");
         int k = 0;
@@ -428,8 +417,8 @@ class LianLianKan implements ActionListener {
         score = Integer.parseInt(arr0[1]);
         restTime = Integer.parseInt(arr0[2]);
         String[] arr2 = arr0[3].split(",");
-        x0 = Integer.parseInt(arr2[0]);
-        y0 = Integer.parseInt(arr2[1]);
+        x = Integer.parseInt(arr2[0]);
+        y = Integer.parseInt(arr2[1]);
     }
 
     //创建带有图片的按钮
@@ -522,15 +511,9 @@ class LianLianKan implements ActionListener {
         mainFrame.setResizable(false);
         //将按钮点击信息归为初始 
         pressInformation = false;
+        x = 0;
+        y = 0;
         init();
-
-        for (int i = 0; i < Standard.columns; i++) {
-            for (int j = 0; j < Standard.rows; j++) {
-                if (grid[i + 1][j + 1] == 0) { //将消去的按钮设置为不可见 
-                    diamondsButton[i][j].setVisible(false);
-                }
-            }
-        }
     }
 
     //选中按钮信息的存储与操作
@@ -561,13 +544,12 @@ class LianLianKan implements ActionListener {
 
             if (secondButton == firstButton){
                 pressInformation = false;
-                x0 = 0;
-                y0 = 0;
+                x = 0;
+                y = 0;
                 ImageIcon icon = new ImageIcon("./grid/" + firstMsg + ".png");
                 firstButton.setIcon(icon);
             }
-            else if ((firstMsg == secondMsg)) { //如果当两个不同的按钮上的数字相等时则消去
-                eliminate();
+            else if ((firstMsg == secondMsg) && eliminate()) { //如果当两个不同的按钮上的数字相等时则消去
             }
             else {
                 ImageIcon icon = new ImageIcon("./grid/" + firstMsg + "_chosen.png");
@@ -579,222 +561,166 @@ class LianLianKan implements ActionListener {
     }
 
     //消去
-    public void eliminate() {
+    public boolean eliminate() {
         if (((x0 == x) && ((y0 == (y + 1)) || (y0 == (y - 1)))) ||
                 (((x0 == (x + 1)) || (x0 == (x - 1))) && (y0 == y))) { //如果两个按钮相邻，则消去 
             remove();
+            return true;
         }
         else {
             //如果两个按钮不相邻
-            boolean tempFlag = true; // 记录第一个循环中是否已消除
             //判断与第一按钮同行的情况
-            for (j = 0; (j < (Standard.rows + 2)) && tempFlag; j++) { //判断第一个按钮同行哪个按钮为空
-
+            for (j = 0; (j < Standard.rows + 2); j++) { //判断第一个按钮同行哪个按钮为空
                 if (grid[x0][j] == 0) { //如果同行有空按钮
-
                     if (y > j) { //如果第二个按钮的y坐标大于空按钮的j坐标说明空按钮在第二按钮左边 
-
-                        for (i = y - 1; (i >= j) && tempFlag; i--) { //判断第二按钮左侧直到位置(x,j)有没有按钮 
+                        for (i = y - 1; i >= j; i--) { //判断第二按钮左侧直到位置(x,j)有没有按钮 
                                                        //即判断与空按钮同列、与第二按钮同行的位置到第二按钮的左侧为止有没有按钮
-
                             if (grid[x][i] != 0) { //如果有按钮，则将k初始化为零，并将跳出循环 
                                 k = 0;
-
                                 break;
                             } else { //如果没有按钮
                                 k = 1; //K=1说明通过了第一次验证  
                             }
                         }
-
                         if (k == 1) { //k==1说明横坐标为x,纵坐标从j到(y-1)的位置都没有按钮
                                       //即说明与空按钮同列、与第二按钮同行的位置到第二按钮的左侧为止没有按钮
                             linePassOne();
                         }
                     }
-
                     if (y < j) { //如果第二个按钮的y坐标小于空按钮的j坐标说明空按钮在第二按钮右边 
-
-                        for (i = y + 1; (i <= j) && tempFlag; i++) { //判断第二按钮右侧直到位置(x,j)有没有按钮 
-
+                        for (i = y + 1; i <= j; i++) { //判断第二按钮右侧直到位置(x,j)有没有按钮 
                             if (grid[x][i] != 0) { //如果有按钮，则将k初始化为零，并将跳出循环
                                 k = 0;
-
                                 break;
                             } else { //如果没有按钮
                                 k = 1;
                             }
                         }
-
                         if (k == 1) { //通过第一次验证，即第二按钮右侧直到位置(x,j)没有按钮
                             linePassOne();
                         }
                     }
-
                     if (y == j) { //第二个按钮与空按钮同列，即第二按钮与第一按钮同行
                         linePassOne();
                     }
                 }
-
                 if (k == 2) { //通过第二验证
-
                     if (x0 == x) { //两个按钮在同一行
                         remove();
-                        tempFlag = false;
+                        return true;
                     }
-
                     if (x0 < x) { //第二个按钮所在行在第一按钮所在行的下面
-
-                        for (n = x0; (n <= (x - 1)) && tempFlag; n++) { //判断空按钮下侧直到位置(x-1,j)有没有按钮
-
+                        for (n = x0; n <= (x - 1); n++) { //判断空按钮下侧直到位置(x-1,j)有没有按钮
                             if (grid[n][j] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                                 k = 0;
-
                                 break;
                             }
-
                             if ((grid[n][j] == 0) && (n == (x - 1))) { //如果直到位置(x-1,j)没有按钮
                                 remove();
-                                tempFlag = false;
+                                return true;
                             }
                         }
                     }
-
                     if (x0 > x) { //第二个按钮所在行在第一按钮所在行的上面
-
-                        for (n = x0; (n >= (x + 1)) && tempFlag; n--) { //判断空按钮上侧直到位置(x+1,j)有没有按钮
-
+                        for (n = x0; n >= (x + 1); n--) { //判断空按钮上侧直到位置(x+1,j)有没有按钮
                             if (grid[n][j] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                                 k = 0;
-
                                 break;
                             }
-
                             if ((grid[n][j] == 0) && (n == (x + 1))) { //如果直到位置(x+1,j)没有按钮
                                 remove();
-                                tempFlag = false;
+                                return true;
                             }
                         }
                     }
                 }
             }
-
-                //判断与第一按钮同列情况
-            for (i = 0; (i < (Standard.columns + 2)) && tempFlag; i++) { //判断第一个按钮同列哪个按钮为空
-
+            //判断与第一按钮同列情况
+            for (i = 0; i < (Standard.columns + 2); i++) { //判断第一个按钮同列哪个按钮为空
                 if (grid[i][y0] == 0) { //同列有空按钮
-
                     if (x > i) { //如果第二个按钮的x坐标大于空按钮的i坐标说明空按钮在第二按钮上边
-
-                        for (j = x - 1; (j >= i) && tempFlag; j--) { //判断第二按钮上侧直到位置(i,y)有没有按钮 
-
+                        for (j = x - 1; j >= i; j--) { //判断第二按钮上侧直到位置(i,y)有没有按钮 
                             if (grid[j][y] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                                 k = 0;
-
                                 break;
                             } else { //如果没有按钮
                                 k = 1; //说明通过第一次验证
                             }
                         }
-
                         if (k == 1) { //第二按钮上侧直到位置(i,y)没有按钮
                             rowPassOne();
                         }
                     }
-
-                    if (x < i) { //空按钮在第二按钮下边
-
-                        for (j = x + 1; (j <= i) && tempFlag; j++) { //判断第二按钮下侧直到位置(i,y)有没有按钮
-
+                    else if (x < i) { //空按钮在第二按钮下边
+                        for (j = x + 1; j <= i; j++) { //判断第二按钮下侧直到位置(i,y)有没有按钮
                             if (grid[j][y] != 0) {
                                 k = 0;
-
                                 break;
                             } else {
                                 k = 1;
                             }
                         }
-
                         if (k == 1) { //第二按钮下侧直到位置(i,y)没有按钮
                             rowPassOne();
                         }
                     }
-
-                    if (x == i) { //第二按钮与空按钮同行
+                    else if (x == i) { //第二按钮与空按钮同行
                         rowPassOne();
                     }
                 }
-
                 if (k == 2) { //通过第二次验证
-
                     if (y0 == y) { //两个按钮同列
                         remove();
-                        tempFlag = false;
+                        return true;
                     }
-
                     if (y0 < y) { //第二按钮所在行在第一按钮所在行的下面
-
-                        for (n = y0; (n <= (y - 1)) && tempFlag; n++) { //判断空按钮右侧直到位置(i,y-1)有没有按钮
-
+                        for (n = y0; n <= (y - 1); n++) { //判断空按钮右侧直到位置(i,y-1)有没有按钮
                             if (grid[i][n] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                                 k = 0;
-
                                 break;
                             }
-
                             if ((grid[i][n] == 0) && (n == (y - 1))) { //空按钮右侧直到位置(i,y-1)没有按钮
                                 remove();
-                                tempFlag = false;
+                                return true;
                             }
                         }
                     }
-
                     if (y0 > y) { //第二按钮所在行在第一按钮所在行的上面
-
-                        for (n = y0; (n >= (y + 1)) && tempFlag; n--) { //判断空按钮左侧直到位置(i,y+1)有没有按钮
-
+                        for (n = y0; n >= (y + 1); n--) { //判断空按钮左侧直到位置(i,y+1)有没有按钮
                             if (grid[i][n] != 0) {
                                 k = 0;
-
                                 break;
                             }
-
                             if ((grid[i][n] == 0) && (n == (y + 1))) { //空按钮左侧直到位置(i,y+1)没有按钮
                                 remove();
-                                tempFlag = false;
+                                return true;
                             }
                         }
                     }
                 }
             }
         }
+        return false;
     }
-
     /**
      * 第一按钮的同行中存在空按钮
      * 判断在同一行中空按钮与第一个按钮之间的位置是否有按钮存在，如果有则k=0,否则k=2
      * */
     public void linePassOne() {
         if (y0 > j) { //第一按钮在同行空按钮的右边 
-
             for (i = y0 - 1; i >= j; i--) { //判断第一按钮同左侧空按钮之间有没按钮 
-
                 if (grid[x0][i] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                     k = 0;
-
                     break;
                 } else { //如果没有按钮
                     k = 2; //K=2说明通过了第二次验证  
                 }
             }
         }
-
         if (y0 < j) { //第一按钮在同行空按钮的左边 
-
             for (i = y0 + 1; i <= j; i++) { //判断第一按钮同右侧空按钮之间有没按钮 
-
                 if (grid[x0][i] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                     k = 0;
-
                     break;
                 } else {
                     k = 2;
@@ -802,33 +728,25 @@ class LianLianKan implements ActionListener {
             }
         }
     }
-
     /**
      * 第一按钮的同列中存在空按钮
      * 判断在同一列中空按钮与第一个按钮之间的位置是否有按钮存在，如果有则k=0,否则k=2
      * */
     public void rowPassOne() {
         if (x0 > i) { //第一按钮在同列空按钮的下边
-
             for (j = x0 - 1; j >= i; j--) { //判断第一按钮同上侧空按钮之间有没按钮
-
                 if (grid[j][y0] != 0) { //如果有按钮，将k初始化为零，并跳出循环
                     k = 0;
-
                     break;
                 } else { //如果没有按钮
                     k = 2; //K=2说明通过了第二次验证 
                 }
             }
         }
-
         if (x0 < i) { //第一按钮在同列空按钮的上边
-
             for (j = x0 + 1; j <= i; j++) { //判断第一按钮同下侧空按钮之间有没按钮
-
                 if (grid[j][y0] != 0) {
                     k = 0;
-
                     break;
                 } else {
                     k = 2;
@@ -841,17 +759,17 @@ class LianLianKan implements ActionListener {
     public void remove() {
         firstButton.setVisible(false);
         secondButton.setVisible(false);
+        grid[x0][y0] = 0;
+        grid[x][y] = 0;
         fraction(); //每消去一对按钮则加1分
         /**
          * 将点击按钮信息归为初始
          * 将K和被消去的两个按钮的坐标初始为零
             */
         pressInformation = false;
-        x0 = 0;
-        y0 = 0;
+        x = 0;
+        y = 0;
         k = 0;
-        grid[x0][y0] = 0;
-        grid[x][y] = 0;
     }
 
     //实现事件监听
@@ -868,14 +786,19 @@ class LianLianKan implements ActionListener {
             mainFrame.setVisible(false);
             pressInformation = false;
             fractionLable.setText("0");
+            t.cancel();
             init();
+            if (isClientConnected){
+                try{
+                    dosOutToServer.writeBytes(packState() + '\n');
+                } catch(Exception c){}
+            }
             timerDemo();
         }
 
         if (e.getSource() == exitButton) { //点击退出按钮事件
             audioClip.stop(); //点击退出，终止音频播放
             if (isClientConnected){
-              System.out.println("发送！");
               try{
                 dosOutToServer.writeBytes("exit" + '\n');
               } catch(Exception c){}
@@ -886,11 +809,21 @@ class LianLianKan implements ActionListener {
         if (e.getSource() == resetButton) { //点击重列按钮事件
             ifNewGame = false;
             reload();
+            if (isClientConnected){
+                try {
+                    dosOutToServer.writeBytes("reload:" + packState() + '\n');
+                } catch (Exception c){}
+            }
         }
 
         for (int cols = 0; cols < Standard.columns; cols++) {
             for (int rows = 0; rows < Standard.rows; rows++) {
                 if (e.getSource() == diamondsButton[cols][rows]) { //当点击按钮时，调用estimateEven方法
+                    if (isClientConnected){
+                        try {
+                            dosOutToServer.writeBytes("click " + cols + " " + rows + '\n');
+                        } catch (Exception c){}
+                    }
                     estimateEven(cols + 1, rows + 1, diamondsButton[cols][rows]);
                 }
             }
@@ -957,23 +890,27 @@ class LianLianKan implements ActionListener {
             audioClip.stop();
             System.exit(0);
         }
-        else if (msg.equals("reload")){
-
-        }
-        else if (msg.equals("new")){
-            flag = true;
-            ifNewGame = true;
-
-            int[][] grid = new int[Standard.columns + 2][Standard.rows + 2];
-            this.grid = grid; //将grid数组初始化为零
-            randomBuild(); //重新获取15个随机的1~Standard.imageNumbers的数字
-                           //将一切信息归为初始
-
+        else if (msg.split(":")[0].equals("reload")){
             mainFrame.setVisible(false);
-            pressInformation = false;
-            fractionLable.setText("0");
+            mainFrame.setResizable(false);
+            parseState(msg.split(":")[1]);
+            isTransport = true;
+            t.cancel();
             init();
-            timerDemo();
+        }
+        else if (msg.split(" ")[0].equals("click")){
+            int cols = Integer.parseInt(msg.split(" ")[1]),
+                rows = Integer.parseInt(msg.split(" ")[2]);
+            estimateEven(cols + 1, rows + 1, diamondsButton[cols][rows]);
+        }
+        else{
+            // 上述情况不符合，只可能是对方出来新建游戏的情况
+            mainFrame.setVisible(false);
+            mainFrame.setResizable(false);
+            isTransport = true;
+            parseState(msg);
+            t.cancel();
+            init();
         }
     }
 
@@ -994,11 +931,10 @@ class LianLianKan implements ActionListener {
                 s = s + String.valueOf(grid[i][j]) + ",";
             }
         }
-        // 存入分数和时间
+        // 存入分数和时间（考虑传输延迟，传输时时间减一秒）
         s += " " + String.valueOf(score) +
-             " " + String.valueOf(restTime) +
-             " " + String.valueOf(x0) + "," + String.valueOf(y0);
-        System.out.println(s);
+             " " + String.valueOf(restTime - 1) +
+             " " + String.valueOf(x) + "," + String.valueOf(y);
         return s;
     }
 }

@@ -72,10 +72,8 @@ public class ClientAddressFrame extends JFrame{
           tcpServer.setGame(llk);
           Thread server = new Thread(tcpServer, "server");
           server.start();
-          System.out.println("server start!");
           llk.createClient(InetAddress.getByName(strIP), 7890);
           llk.dosOutToServer.writeBytes("client" + '\n');
-          System.out.println("client connected!");
         }catch (Exception c){}
         dispose();
       }

@@ -32,7 +32,6 @@ public class TCPServer extends Thread{
         do{
           strSocket = brInFromClient.readLine();
           if (!flag){
-            System.out.println(strSocket);
             game.tcpServer(strSocket);
           }
           else{
@@ -41,7 +40,6 @@ public class TCPServer extends Thread{
             if (strSocket.equals("client")){
               game.createClient(ip, 6789);
               game.dosOutToServer.writeBytes(game.packState() + '\n');
-              System.out.println("客户端发送信息！");
             }
             else {
               game.parseState(strSocket);
