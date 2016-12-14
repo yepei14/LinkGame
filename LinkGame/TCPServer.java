@@ -42,6 +42,7 @@ public class TCPServer extends Thread{
               game.dosOutToServer.writeBytes(game.packState() + '\n');
             }
             else {
+              game.isTransport = true;
               game.parseState(strSocket);
               game.init();
             }
